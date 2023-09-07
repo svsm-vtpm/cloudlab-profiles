@@ -19,6 +19,8 @@ request = pc.makeRequestRSpec()
  
 # Add a raw PC to the request.
 node = request.RawPC("node")
+node.hardware_type = 'r6525'
+node.component_id = 'clnode302'
 
 # Install and execute a script that is contained in the repository.
 node.addService(pg.Execute(shell="sh", command="/local/repository/svsm-vtpm-top.sh"))
