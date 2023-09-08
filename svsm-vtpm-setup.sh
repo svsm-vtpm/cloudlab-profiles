@@ -41,8 +41,28 @@ mountfs() {
   sudo chown -R ${USER}:${GROUP} ${MOUNT_DIR}
 }
 
+delete_swap() {
+  record_log "Deleting swap partition ..."
+  sudo swapoff -a
+  # Delete SWAP parition. check GUID: https://en.wikipedia.org/wiki/GUID_Partition_Table
+  sudo sfdisk -d /dev/sda | grep -v 'type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F' | sudo sfdisk -f /dev/sda
+}
+
+create_new_partition() {
+  record_log "Creating new data partition..."
+  END_SECTOR=$(($(sudo sfdisk -l -o End /dev/sda | tail -n 1) + 1))
+  # GUID of a regular linux partition
+  echo "${END_SECTOR}+,0FC63DAF-8483-4772-8E79-3D69D8477DE4" | sudo sfdisk -f -a /dev/sda
+
+  # activate partition
+  sudo partprobe /dev/sda
+}
+
 prepare_local_partition() {
   record_log "Preparing local partition ..."
+
+  delete_swap
+  create_new_partition
 
   MOUNT_POINT=$(mount -v | grep "/dev/sda4" | awk '{print $3}' ||:)
 
